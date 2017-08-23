@@ -1,0 +1,112 @@
+Welcome to the second Django web development with Python tutorial. This tutorial picks up from the previous one, and is focused on getting a simple page to render some text. After you did the startproject command, a new directory is created, called whatever you named it. We called it mysite. Change directory into your new directory cd mysite. Next, we create a new app for this:
+
+python manage.py startapp webapp
+
+Now a new directory exists, called webapp. In here, we see a lot of similar files, and some new ones:
+
+webapp/
+    migrations/ 
+	__init__.py
+	admin.py
+	apps.py
+	models.py
+	tests.py
+	views.py
+
+The app is indeed treated as its own package, with its own __init__.py, along with other files. For now, we will concern ourselves with views.py, and we're actually going to add another file urls.py. First, let's modify the webapp/views.py:
+
+from django.shortcuts import render
+from django.http import HttpResponse
+
+def index(request):
+    return HttpResponse("<h2>HEY!</h2>")
+
+Next up, we will create a new file: webapp/urls.py
+
+from django.conf.urls import url
+from . import views
+
+urlpatterns = [
+    url(r'^$', views.index, name='index'),
+]
+
+First, you may notice this from . import, the period here means we're importing from the current package, it is a relative import. Next, we have a urlpatterns definition. These are regular expressions that will take whatever the user types in, and try to find a match. Don't know Regular Expressions? Check out the regex tutorial. Our expression here is ^$. The carrot marks that it is the start of a string, then the $ marks the end. Thus, this specific URL will be the "index," where there will be nothing else in the URL, like a homepage. The difference, however, is this specific urls.py file is relative, it is local to the webapp app, which is actually part of what makes Django very impressive, and what I was referencing earlier about the various urls.py files. So, now our webapp has url handling, but our main project actually doesn't point to the webapp at all, so let's do that next.
+
+If you head to mysite/urls.py, you should already have:
+
+from django.conf.urls import url
+from django.contrib import admin
+
+urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+]
+
+We'll leave the admin there, and talk about that later, but basically Django already has a built-in admin control panel. We're going to add another URL to link to our webapp. Simply, we could do:
+
+from django.conf.urls import url,include
+from django.contrib import admin
+
+urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+    url(r'^webapp/', include('webapp.urls')),
+]
+
+Next, we need to finally include our new app in our installed applications:
+
+mysite/settings.py
+
+# ...this is just a slice of code within settings.py 
+# do not delete the other code
+# just add 'webapp' to the list.
+INSTALLED_APPS = [
+    'webapp',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+]
+
+Here, we've got our main project pointing to our webapp, starting at /webapp/. Thus, what will happen next is Django will bop over to the webapp dir, reference the urls.py file there, and continue. In this case, /webapp/ will be treated as the "root," so if you have a url in your webapp that is just empty, like we do, then to get there, you would type in yourwebsite.com/webapp/, and that would get you there. Go ahead and test that. Head to your console, making sure you are working in you project's main container directory (the one containing manage.py), and run:
+
+python manage.py runserver
+
+Next, visit http://127.0.0.1:8000/webapp/. You should be greeted with your screaming "HEY!"
+
+Alternatively, what if you wanted your website's homepage to be the webapp message? You would modify the mysite/urls.py file that dictates the webapp as being held at /webapp/, to actually be held at the index, which would be the same regular expression as we used within the webapp itself r'^$'. So, now, your mysite/urls.py file looks like:
+
+from django.conf.urls import url,include
+from django.contrib import admin
+
+urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+    url(r'^$', include('webapp.urls')),
+]
+
+If you left the runserver command still going, then the changes should be live already, go ahead and head to your "homepage," which is http://127.0.0.1:8000/. There's your message! Finally, what if you wanted to put your "HEY!" located at the following URL: http://127.0.0.1:8000/webapp/hey/? There are a few ways to get away with this, but the most sensible way is to have the main site link to the webapp, then handle for /hey/ within the webapp's urls.py file. First, we need to modify mysite/urls.py to link just to the webapp:
+
+mysite/urls.py
+
+from django.conf.urls import url,include
+from django.contrib import admin
+
+urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+    url(r'^webapp/', include('webapp.urls')),
+]
+
+Next, we want to include our "hey" url in the webapp/urls.py file:
+
+from django.conf.urls import url
+from . import views
+
+urlpatterns = [
+    url(r'^hey/', views.index, name='index'),
+]
+
+Great, now you can visit http://127.0.0.1:8000/webapp/hey/ to see your message. Unfortunately, this webapp is not going to be getting millions of users any time soon.
+
+Download the entire site's code for this tutorial here: Part 2
+
+The next tutorial:
